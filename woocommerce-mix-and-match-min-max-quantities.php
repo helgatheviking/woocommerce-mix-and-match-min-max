@@ -214,8 +214,6 @@ class WC_MNM_Min_Max_Quantities {
 			delete_post_meta( $post_id, '_mnm_max_container_size' );
 		}
 
-		
-
 		return $post_id;
 
 	}
@@ -248,15 +246,16 @@ class WC_MNM_Min_Max_Quantities {
 	 * @return void
 	 */
 	function quantity_message( $message, $product ){
-		$min_qty = intval( get_post_meta( $product->id, '_mnm_min_container_size', true ) );
-		// if not set, min_container_size is always 1, because the container can't be empty
-		$min_qty = $min_qty > 0 ? $min_qty : 1;
+		$limit = $product->get_container_size();
 
+		$min_qty = intval( get_post_meta( $product->id, '_mnm_min_container_size', true ) );
 		$max_qty = intval( get_post_meta( $product->id, '_mnm_max_container_size', true ) );
 
-		if( $max_qty > 0 && $min_qty > 0 ){
+		if( $limit === 0 & $max_qty > 0 ){
+			// if not set, min_container_size is always 1, because the container can't be empty
+			$min_qty = $min_qty > 0 ? $min_qty : 1;
 			$message = sprintf( __( 'Please choose between %d and %d items to continue...', 'wc-mnm-min-max' ), $min_qty, $max_qty );
-		} else if( $min_qty > 0 ){
+		} else if( $limit === 0 & $min_qty > 0 ){
 			$message = sprintf( __( 'Please choose at least %d items to continue...', 'wc-mnm-min-max' ), $min_qty );
 		} 
 

@@ -7,11 +7,12 @@
 
     $( 'body' ).on( 'wc-mnm-validation', '.mnm_form', function( e, form, total_qty ){
 
+    	var container_size    = form.container_size;
     	var min_container_size    = form.$mnm_cart.data( 'min_container_size' );
     	var max_container_size    = form.$mnm_cart.data( 'max_container_size' );
 
-    	// only process script if item has min/max container settings
-    	if( max_container_size > 0 || min_container_size > 0 ){
+    	// only process script if item has min/max container settings in unlimited mode
+    	if( container_size === 0 && ( max_container_size > 0 || min_container_size > 0 ) ){
 
 	    	var container_size        = form.get_container_size();
 	    	var total_qty_valid     = false;
