@@ -186,13 +186,35 @@ class WC_MNM_Min_Max_Quantities {
 	 */
 	public static function process_meta( $post_id ) {
 
-		// Min container size (can be a null string, but cannot be 0)
-		$min = ( isset( $_POST[ 'mnm_min_container_size'] ) && ! empty( wc_clean( $_POST[ 'mnm_min_container_size'] ) )  && intval( $_POST['mnm_min_container_size' ] )  > 0 ) ? intval( $_POST['mnm_min_container_size' ] ) : '';
-		update_post_meta( $post_id, '_mnm_min_container_size', $min );
+		$min = '';
+		$max = '';
 
-		// Max container size (can be a null string, but cannot be 0)
-		$max = ( isset( $_POST[ 'mnm_max_container_size'] ) && ! empty( wc_clean( $_POST[ 'mnm_max_container_size'] ) )  && intval( $_POST['mnm_max_container_size' ] )  > 0 ) ? intval( $_POST['mnm_max_container_size' ] ) : '';
-		update_post_meta( $post_id, '_mnm_max_container_size', $max );
+		// only valid on "unlimited" container size = 0 containers
+		if ( isset( $_POST[ 'mnm_min_container_size'] ) && $_POST[ 'mnm_min_container_size'] === 0 ){
+
+			// Min container size (can be a null string, but cannot be 0)
+			$min = ( isset( $_POST[ 'mnm_min_container_size'] ) && ! empty( wc_clean( $_POST[ 'mnm_min_container_size'] ) )  && intval( $_POST['mnm_min_container_size' ] )  > 0 ) ? intval( $_POST['mnm_min_container_size' ] ) : '';
+
+
+			// Max container size (can be a null string, but cannot be 0)
+			$max = ( isset( $_POST[ 'mnm_max_container_size'] ) && ! empty( wc_clean( $_POST[ 'mnm_max_container_size'] ) )  && intval( $_POST['mnm_max_container_size' ] )  > 0 ) ? intval( $_POST['mnm_max_container_size' ] ) : '';
+
+		}
+
+		// update or delete
+		if( $min ){
+			update_post_meta( $post_id, '_mnm_min_container_size', $min );
+		} else {
+			delete_post_meta( $post_id, '_mnm_min_container_size' );
+		}
+
+		if( $max ){
+			update_post_meta( $post_id, '_mnm_max_container_size', $max );
+		} else {
+			delete_post_meta( $post_id, '_mnm_max_container_size' );
+		}
+
+		
 
 		return $post_id;
 
