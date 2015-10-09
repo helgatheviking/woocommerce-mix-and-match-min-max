@@ -92,7 +92,7 @@ class WC_MNM_Min_Max_Quantities {
 		add_filter( 'woocommerce_mnm_container_quantity_message', array( $this, 'quantity_message' ), 10, 2 );
 
 		// validate the container
-		add_filter( 'woocommerce_mnm_container_quantity_failure_message', array( $this, 'validate_container' ), 10, 3 );
+		add_filter( 'woocommerce_mnm_add_to_cart_validation', array( $this, 'validate_container' ), 10, 3 );
 
 		// Modify order items to include bundle meta
 		add_action( 'woocommerce_add_order_item_meta', array( $this, 'add_order_item_meta' ), 10, 3 );
@@ -140,7 +140,7 @@ class WC_MNM_Min_Max_Quantities {
 
 		<p id="mnm_min_container_size_options" class="form-field mnm-show-if-unlimited">
 			<?php
-			$limit = intval( get_post_meta( $post->ID, '_mnm_min_container_size', true ) );
+			$limit = ( ! empty( $limit = get_post_meta( $post->ID, '_mnm_min_container_size', true ) ) ) ? intval( $limit ) : '';
 			?>
 			<label for="mnm_min_container_size"><?php _e( 'Minimum Container Size', 'wc-mnm-min-max' ); ?></label>
 			<input type="number" class="short" name="mnm_min_container_size" id="mnm_min_container_size" value="<?php echo $limit;?>" placeholder="" step="1" min="0">
@@ -149,7 +149,7 @@ class WC_MNM_Min_Max_Quantities {
 
 		<p id="mnm_max_container_size_options" class="form-field mnm-show-if-unlimited">
 			<?php
-			$limit = intval( get_post_meta( $post->ID, '_mnm_max_container_size', true ) );
+			$limit = ( ! empty( $limit = get_post_meta( $post->ID, '_mnm_max_container_size', true ) ) ) ? intval( $limit ) : '';
 			?>
 			<label for="mnm_min_container_size"><?php _e( 'Maximum Container Size', 'wc-mnm-min-max' ); ?></label>
 			<input type="number" class="short" name="mnm_max_container_size" id="mnm_max_container_size" value="<?php echo $limit;?>" placeholder="" step="1" min="0">
@@ -186,12 +186,12 @@ class WC_MNM_Min_Max_Quantities {
 	 */
 	public static function process_meta( $post_id ) {
 
-		// Min container size
-		$min = ( isset( $_POST[ 'mnm_min_container_size'] ) ) ? intval( $_POST['mnm_min_container_size' ] ) : '';
+		// Min container size (can be a null string, but cannot be 0)
+		$min = ( isset( $_POST[ 'mnm_min_container_size'] ) && ! empty( wc_clean( $_POST[ 'mnm_min_container_size'] ) )  && intval( $_POST['mnm_min_container_size' ] )  > 0 ) ? intval( $_POST['mnm_min_container_size' ] ) : '';
 		update_post_meta( $post_id, '_mnm_min_container_size', $min );
 
-		// Max container size
-		$max = ( isset( $_POST[ 'mnm_max_container_size'] ) ) ? intval( $_POST['mnm_max_container_size' ] ) :'';
+		// Max container size (can be a null string, but cannot be 0)
+		$max = ( isset( $_POST[ 'mnm_max_container_size'] ) && ! empty( wc_clean( $_POST[ 'mnm_max_container_size'] ) )  && intval( $_POST['mnm_max_container_size' ] )  > 0 ) ? intval( $_POST['mnm_max_container_size' ] ) : '';
 		update_post_meta( $post_id, '_mnm_max_container_size', $max );
 
 		return $post_id;
@@ -227,13 +227,13 @@ class WC_MNM_Min_Max_Quantities {
 	 */
 	function quantity_message( $message, $product ){
 		$min_qty = intval( get_post_meta( $product->id, '_mnm_min_container_size', true ) );
-		$max_qty = intval( get_post_meta( $product->id, '_mnm_max_container_size', true ) );
+		// if not set, min_container_size is always 1, because the container can't be empty
+		$min_qty = $min_qty > 0 ? $min_qty : 1;
 
+		$max_qty = intval( get_post_meta( $product->id, '_mnm_max_container_size', true ) );
 
 		if( $max_qty > 0 && $min_qty > 0 ){
 			$message = sprintf( __( 'Please choose between %d and %d items to continue...', 'wc-mnm-min-max' ), $min_qty, $max_qty );
-		} else if( $max_qty > 0 ){
-			$message = sprintf( __( 'Please choose fewer than %d items to continue...', 'wc-mnm-min-max' ), $max_qty );
 		} else if( $min_qty > 0 ){
 			$message = sprintf( __( 'Please choose at least %d items to continue...', 'wc-mnm-min-max' ), $min_qty );
 		} 
@@ -253,23 +253,30 @@ class WC_MNM_Min_Max_Quantities {
 	 * @param int $total_items_in_container - the number of items selected so far
 	 * @return void
 	 */
-	function validate_container( $error_message, $product, $total_items_in_container ){
+	function validate_container( $passed, $mnm_stock, $product ){
+		$total_items_in_container = $mnm_stock->get_total_quantity();
+
 		$limit = intval( get_post_meta( $product->id, '_mnm_container_size', true ) );
+
 		$min_qty = intval( get_post_meta( $product->id, '_mnm_min_container_size', true ) );
+		$min_qty = $min_qty > 0 ? $min_qty : 1;
+
 		$max_qty = intval( get_post_meta( $product->id, '_mnm_max_container_size', true ) );
 
-		// validate that an unlimited container has fewer than maximum number of items
-		if( $limit === 0 && $total_items_in_container > $max_qty ){
-
-			$error_message = sprintf( __( 'You have selected too many items. Please choose fewer than %d items for &quot;%s&quot;', 'wc-mnm-min-max' ), $max_qty, $product->get_title() );
+		// validate that an unlimited container is in min/max range & build a specific error message
+		if( $limit === 0 && $max_qty > 0 && $min_qty > 0 && ( $total_items_in_container > $max_qty || $total_items_in_container < $min_qty ) ){
+			$message = $total_items_in_container > $max_qty ? __( 'You have selected too many items.', 'wc-mnm-min-max' ) : __( 'You have not selected enough items.', 'wc-mnm-min-max' );
+			$message .= '  ' . 	sprintf( __( 'Please choose between %d and %d items for &quot;%s&quot;', 'wc-mnm-min-max' ), $min_qty, $max_qty, $product->get_title() );
+			wc_add_notice( $message, 'error' );
+			return false;
 		} 
 		// validate that an unlimited container has minimum number of items
-		else if( $limit === 0 && $total_items_in_container < $min_qty ){
-
-			$error_message = sprintf( __( 'You have not selected enough items. Please choose at least %d items for &quot;%s&quot;', 'wc-mnm-min-max' ), $min_qty, $product->get_title() );
+		else if( $limit === 0 && $min_qty > 0 && $total_items_in_container < $min_qty ){
+			wc_add_notice( sprintf( __( 'You have not selected enough items. Please choose at least %d items for &quot;%s&quot;', 'wc-mnm-min-max' ), $min_qty, $product->get_title() ), 'error' );
+			return false;
 		} 
 
-		return $error_message;
+		return $passed;
 	}
 
 	/*-----------------------------------------------------------------------------------*/
@@ -288,11 +295,11 @@ class WC_MNM_Min_Max_Quantities {
 		wp_register_script( 'wc-add-to-cart-mnm-min-max', plugins_url( 'js/add-to-cart-mnm-min-max' . $suffix . '.js', __FILE__ ), array( 'wc-add-to-cart-mnm' ), WC_MNM_Min_Max_Quantities()->version, true );
 
 		$params = array(
-			'i18n_min_qty_error'               => __( '%vPlease select at least %s items to continue&hellip;', 'wc-mnm-min-max' ),
-			'i18n_max_qty_error'               => __( '%vPlease select fewer than %s items to continue&hellip;', 'wc-mnm-min-max' )
+			'i18n_min_max_qty_error'               => __( '%vPlease choose between %min and %max items to continue&hellip;', 'wc-mnm-min-max' ),
+			'i18n_min_qty_error'               => __( '%vPlease choose at least %min items to continue&hellip;', 'wc-mnm-min-max' )
 		);
 
-		wp_localize_script( 'wc-add-to-cart-mnm-min-max', 'wc_mnm_min_params', $params );
+		wp_localize_script( 'wc-add-to-cart-mnm-min-max', 'wc_mnm_min_max_params', $params );
 
 	}
 
