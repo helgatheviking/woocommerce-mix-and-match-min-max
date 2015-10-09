@@ -83,7 +83,7 @@ class WC_MNM_Min_Max_Quantities {
 		add_action( 'woocommerce_mnm_product_options', array( $this, 'extra_options' ) );
 
 		// save the new field
-		add_action( 'woocommerce_process_product_meta_mix-and-match', array( $this, 'process_meta' ) );
+		add_action( 'woocommerce_process_product_meta_mix-and-match', array( $this, 'process_meta' ), 20 );
 
 		// add the attribute to front end display
 		add_filter( 'woocommerce_mix_and_match_data_attributes', array( $this, 'data_attributes' ), 10, 2 );
