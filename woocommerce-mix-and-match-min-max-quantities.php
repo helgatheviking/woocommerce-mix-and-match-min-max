@@ -136,25 +136,29 @@ class WC_MNM_Min_Max_Quantities {
 	 * @return void
 	 */
 	public static function extra_options() {
-		global $post; ?>
+		global $post;
 
-		<p id="mnm_min_container_size_options" class="form-field mnm-show-if-unlimited">
-			<?php
-			$limit = ( ! empty( $limit = get_post_meta( $post->ID, '_mnm_min_container_size', true ) ) ) ? intval( $limit ) : '';
-			?>
-			<label for="mnm_min_container_size"><?php _e( 'Minimum Container Size', 'wc-mnm-min-max' ); ?></label>
-			<input type="number" class="short" name="mnm_min_container_size" id="mnm_min_container_size" value="<?php echo $limit;?>" placeholder="" step="1" min="0">
-			<img class="help_tip" data-tip='<?php _e( 'Optional minimum quantity for unlimited quantity containers.', 'wc-mnm-min-max' ); ?>' src="<?php echo WC()->plugin_url(); ?>/assets/images/help.png" height="16" width="16" />
-		</p>
+		woocommerce_wp_text_input( 
+					array( 
+						'id' => 'mnm_min_container_size',
+						'value' => get_post_meta( $post->ID, '_mnm_min_container_size', true ),
+						'wrapper_class' => 'mnm_min_max_container_size_options mnm-show-if-unlimited',
+						'label' => __( 'Minimum Container Size', 'wc-mnm-min-max' ), 
+						'description' => __( 'Optional minimum quantity for unlimited quantity containers.', 'wc-mnm-min-max' ), 
+						'type' => 'number', 
+						'desc_tip' => true ) );
 
-		<p id="mnm_max_container_size_options" class="form-field mnm-show-if-unlimited">
-			<?php
-			$limit = ( ! empty( $limit = get_post_meta( $post->ID, '_mnm_max_container_size', true ) ) ) ? intval( $limit ) : '';
-			?>
-			<label for="mnm_min_container_size"><?php _e( 'Maximum Container Size', 'wc-mnm-min-max' ); ?></label>
-			<input type="number" class="short" name="mnm_max_container_size" id="mnm_max_container_size" value="<?php echo $limit;?>" placeholder="" step="1" min="0">
-			<img class="help_tip" data-tip='<?php _e( 'Optional maximum quantity for unlimited quantity containers.', 'wc-mnm-min-max' ); ?>' src="<?php echo WC()->plugin_url(); ?>/assets/images/help.png" height="16" width="16" />
-		</p>
+		woocommerce_wp_text_input( 
+					array( 
+						'id' => 'mnm_max_container_size',
+						'value' => get_post_meta( $post->ID, '_mnm_max_container_size', true ),
+						'wrapper_class' => 'mnm_min_max_container_size_options mnm-show-if-unlimited',
+						'label' => __( 'Maximum Container Size', 'wc-mnm-min-max' ), 
+						'description' => __( 'Optional maximum quantity for unlimited quantity containers.', 'wc-mnm-min-max' ), 
+						'type' => 'number', 
+						'desc_tip' => true ) );
+
+				?>
 
 		<script>
 		jQuery( document ).ready( function($) {
