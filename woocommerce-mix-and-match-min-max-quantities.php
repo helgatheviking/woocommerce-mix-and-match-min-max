@@ -194,7 +194,7 @@ class WC_MNM_Min_Max_Quantities {
 		$max = '';
 
 		// only valid on "unlimited" container size = 0 containers
-		if ( isset( $_POST[ 'mnm_min_container_size'] ) && $_POST[ 'mnm_min_container_size'] === 0 ){
+		if ( isset( $_POST[ 'mnm_container_size'] ) && intval( $_POST[ 'mnm_container_size'] ) === 0 ){
 
 			// Min container size (can be a null string, but cannot be 0)
 			$min = ( isset( $_POST[ 'mnm_min_container_size'] ) && ! empty( wc_clean( $_POST[ 'mnm_min_container_size'] ) )  && intval( $_POST['mnm_min_container_size' ] )  > 0 ) ? intval( $_POST['mnm_min_container_size' ] ) : '';
