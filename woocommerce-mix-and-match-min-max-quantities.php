@@ -79,8 +79,9 @@ class WC_MNM_Min_Max_Quantities {
 		// Load translation files
 		add_action( 'plugins_loaded', array( $this, 'load_plugin_textdomain' ) );
 
-		// add extra meta
-		add_action( 'woocommerce_mnm_product_options', array( $this, 'extra_options' ) );
+		// Remove and replace product meta options
+		remove_action( 'woocommerce_mnm_product_options', array( 'WC_Mix_and_Match_Admin', 'container_size_options' ), 10 );
+		add_action( 'woocommerce_mnm_product_options', array( $this, 'container_size_options' ) );
 
 		// save the new field
 		add_action( 'woocommerce_process_product_meta_mix-and-match', array( $this, 'process_meta' ), 20 );
@@ -135,53 +136,47 @@ class WC_MNM_Min_Max_Quantities {
 	/*-----------------------------------------------------------------------------------*/
 
 	/**
-	 * Process, verify and save product data
+	 * Show new options in metabox
 	 * @param  int 	$post_id
 	 * @return void
 	 */
-	public static function extra_options() {
-		global $post;
+	public static function container_size_options( $post_id ) {
+
+		// min value is the same as the regular container size
+		$min_qty = intval( get_post_meta( $post_id, '_mnm_container_size', true ) );
+
+		// don't eval with inval yet as we need to test whether a max meta field even exists
+		$max_qty = get_post_meta( $post_id, '_mnm_max_container_size', true );
+
+		// existing "unlimited" containers have a 0 quantity
+		if( $min_qty === 0 ){
+			$min_qty = 1;
+			$max_qty = 0;
+		// if no max value, set it to minimum (essentially a fixed container size)
+		} elseif( ! $max_qty ){
+			$max_qty = $min_qty;
+		}
 
 		woocommerce_wp_text_input( 
 					array( 
-						'id' => 'mnm_min_container_size',
-						'value' => get_post_meta( $post->ID, '_mnm_min_container_size', true ),
-						'wrapper_class' => 'mnm_min_max_container_size_options mnm-show-if-unlimited',
+						'id' => 'mnm_container_size',
+						'value' => $min_qty,
 						'label' => __( 'Minimum Container Size', 'wc-mnm-min-max' ), 
-						'description' => __( 'Optional minimum quantity for unlimited quantity containers.', 'wc-mnm-min-max' ), 
+						'description' => __( 'Minimum quantity for Mix and Match containers', 'wc-mnm-min-max' ), 
 						'type' => 'number', 
+						'min' => 1,
 						'desc_tip' => true ) );
 
 		woocommerce_wp_text_input( 
 					array( 
 						'id' => 'mnm_max_container_size',
-						'value' => get_post_meta( $post->ID, '_mnm_max_container_size', true ),
-						'wrapper_class' => 'mnm_min_max_container_size_options mnm-show-if-unlimited',
+						'value' => $max_qty,
 						'label' => __( 'Maximum Container Size', 'wc-mnm-min-max' ), 
-						'description' => __( 'Optional maximum quantity for unlimited quantity containers.', 'wc-mnm-min-max' ), 
+						'description' => __( 'Maximum quantity for Mix and Match containers. Use 0 to not enforce an upper size limit.', 'wc-mnm-min-max' ), 
 						'type' => 'number', 
 						'desc_tip' => true ) );
 
 				?>
-
-		<script>
-		jQuery( document ).ready( function($) {
-			$('#mnm_min_container_size_options').insertAfter('#mnm_container_size_options');
-			$('#mnm_max_container_size_options').insertAfter('#mnm_min_container_size_options');
-			if( 0 == parseInt( $('#mnm_container_size').val() ) ) {
-				$('.mnm-show-if-unlimited').show();
-			} else {
-				$('.mnm-show-if-unlimited').hide();
-			}
-			$('#mnm_container_size').change( function() { console.log($('#mnm_container_size').val());
-				if( 0 == parseInt( $('#mnm_container_size').val() ) ) {
-					$('.mnm-show-if-unlimited').slideDown();
-				} else {
-					$('.mnm-show-if-unlimited').slideUp();
-				}
-			});
-		});
-		</script>
 
 		<?php
 	}
@@ -192,34 +187,20 @@ class WC_MNM_Min_Max_Quantities {
 	 * @param  int 	$post_id
 	 * @return void
 	 */
-	public static function process_meta( $post_id ) {
+	public static function process_meta( $post_id ) {  delete_post_meta( $post_id, '_mnm_max_container_size' );
 
-		$min = '';
-		$max = '';
+		// Min container size
+		$min_qty = intval( get_post_meta( $post_id, '_mnm_container_size', true ) );
 
-		// only valid on "unlimited" container size = 0 containers
-		if ( isset( $_POST[ 'mnm_container_size'] ) && intval( $_POST[ 'mnm_container_size'] ) === 0 ){
+		// Max container size
+		$max_qty = ( isset( $_POST[ 'mnm_max_container_size'] ) ) ? intval( wc_clean( $_POST['mnm_max_container_size' ] ) ) : $min_qty;
 
-			// Min container size (can be a null string, but cannot be 0)
-			$min = ( isset( $_POST[ 'mnm_min_container_size'] ) && ! empty( wc_clean( $_POST[ 'mnm_min_container_size'] ) )  && intval( $_POST['mnm_min_container_size' ] )  > 0 ) ? intval( $_POST['mnm_min_container_size' ] ) : '';
-
-			// Max container size (can be a null string, but cannot be 0)
-			$max = ( isset( $_POST[ 'mnm_max_container_size'] ) && ! empty( wc_clean( $_POST[ 'mnm_max_container_size'] ) )  && intval( $_POST['mnm_max_container_size' ] )  > 0 ) ? intval( $_POST['mnm_max_container_size' ] ) : '';
-
+		if ( $max_qty > 0 && $min_qty > $max_qty ) {
+			$max_qty = $min_qty;
+			WC_Admin_Meta_Boxes::add_error( __( 'The maximum Mix & Match container size cannot be smaller than the minimum container size.', 'wc-mnm-min-max' ) );
 		}
 
-		// update or delete
-		if( $min ){
-			update_post_meta( $post_id, '_mnm_min_container_size', $min );
-		} else {
-			delete_post_meta( $post_id, '_mnm_min_container_size' );
-		}
-
-		if( $max ){
-			update_post_meta( $post_id, '_mnm_max_container_size', $max );
-		} else {
-			delete_post_meta( $post_id, '_mnm_max_container_size' );
-		}
+		update_post_meta( $post_id, '_mnm_max_container_size', $max_qty );
 
 		return $post_id;
 
