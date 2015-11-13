@@ -244,26 +244,31 @@ class WC_MNM_Min_Max_Quantities {
 
 
 	/**
-	 * Validate container against our minimum quantity requirement
+	 * Quantity message when no JS
 	 *
-	 * @param string $error_message
+	 * @param string $message
 	 * @param obj $product
-	 * @param int $total_items_in_container - the number of items selected so far
 	 * @return void
 	 */
 	function quantity_message( $message, $product ){
-		$limit = $product->get_container_size();
+		$min_qty = get_post_meta( $product->id, '_mnm_container_size', true );
+		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
 
-		$min_qty = intval( get_post_meta( $product->id, '_mnm_min_container_size', true ) );
-		$max_qty = intval( get_post_meta( $product->id, '_mnm_max_container_size', true ) );
+		// if a max quantity exists and is not equal to the min quantity we have a non-fixed container size
+		if( $max_qty && intval( $min_qty ) != intval( $max_qty ) ){
 
-		if( $limit === 0 & $max_qty > 0 ){
-			// if not set, min_container_size is always 1, because the container can't be empty
-			$min_qty = $min_qty > 0 ? $min_qty : 1;
-			$message = sprintf( __( 'Please choose between %d and %d items to continue...', 'wc-mnm-min-max' ), $min_qty, $max_qty );
-		} else if( $limit === 0 & $min_qty > 0 ){
-			$message = sprintf( __( 'Please choose at least %d items to continue...', 'wc-mnm-min-max' ), $min_qty );
-		} 
+			$min_qty = intval( $min_qty );
+			$max_qty = intval( $max_qty );
+
+			if( $max_qty > 0 ){
+				// if not set, min_container_size is always 1, because the container can't be empty
+				$min_qty = $min_qty > 0 ? $min_qty : 1;
+				$message = sprintf( __( 'Please choose between %d and %d items to continue...', 'wc-mnm-min-max' ), $min_qty, $max_qty );
+			} else if( $min_qty > 0 ){
+				$message = sprintf( _n( 'Please choose at least %d item to continue...', 'Please choose at least %d items to continue...', $min_qty, 'wc-mnm-min-max' ), $min_qty );
+			} 
+
+		}
 
 		return $message;
 	}
