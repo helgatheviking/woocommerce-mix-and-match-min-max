@@ -10,10 +10,9 @@ Extend the [WooCommerce Mix and Match Products](http://www.woothemes.com/product
 2. Go the Mix and Match tab in the product meta box
 3. The meta box will now have min/max container size fields instead of a single container size field
 4. Set the minimum and maximum container sizes as desired
+5. Update the product
 
 ![Product meta options](http://tinyurl.com/ngsvpty)
-
-5. Update the product
 
 ## Quantity Options
 
