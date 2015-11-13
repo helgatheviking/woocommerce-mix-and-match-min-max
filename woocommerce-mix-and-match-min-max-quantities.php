@@ -252,7 +252,7 @@ class WC_MNM_Min_Max_Quantities {
 		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
 
 		// if a max quantity exists and is not equal to the min quantity we have a non-fixed container size
-		if ( $max_qty && intval( $min_qty ) != intval( $max_qty ) ) {
+		if ( $max_qty !== false && intval( $min_qty ) != intval( $max_qty ) ) {
 
 			$min_qty = intval( $min_qty );
 			$max_qty = intval( $max_qty );
