@@ -89,8 +89,7 @@ class WC_MNM_Min_Max_Quantities {
 		// add the attribute to front end display
 		add_filter( 'woocommerce_mix_and_match_data_attributes', array( $this, 'data_attributes' ), 10, 2 );
 
-		// modify the min/max container size properties on sync
-		add_filter( 'woocommerce_mnm_min_container_size', array( $this, 'min_container_size' ), 10, 2 );
+		// modify the max container size properties on sync
 		add_filter( 'woocommerce_mnm_max_container_size', array( $this, 'max_container_size' ), 10, 2 );
 
 		// display the quantity message info when no JS
@@ -227,23 +226,6 @@ class WC_MNM_Min_Max_Quantities {
 
 
 	/**
-	 * Filter the minimum container size.
-	 * Will automatically fix the "From" price
-	 *
-	 * @param int $size
-	 * @param obj $product
-	 * @return inte
-	 */
-	function min_container_size( $size, $product ){
-		$min_qty = intval( get_post_meta( $product->id, '_mnm_min_container_size', true ) );
-		if( $min_qty > 0 ){
-			$size = $min_qty;
-		}
-		return $size;
-	}
-
-
-	/**
 	 * Filter the maximum container size.
 	 *
 	 * @param int $size
@@ -251,9 +233,9 @@ class WC_MNM_Min_Max_Quantities {
 	 * @return inte
 	 */
 	function max_container_size( $size, $product ){
-		$max_qty = intval( get_post_meta( $product->id, '_mnm_max_container_size', true ) );
-		if( $max_qty > 0 ){
-			$size = $max_qty;
+		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
+		if( $max_qty !== false ){
+			$size = intval( $max_qty );
 		}
 		return $size;
 	}
