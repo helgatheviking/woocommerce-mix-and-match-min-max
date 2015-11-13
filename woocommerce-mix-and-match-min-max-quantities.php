@@ -217,8 +217,10 @@ class WC_MNM_Min_Max_Quantities {
 	 * @return array
 	 */
 	public function data_attributes( $attributes, $product ) {
-		$min_qty = intval( get_post_meta( $product->id, '_mnm_min_container_size', true ) );
-		$max_qty = intval( get_post_meta( $product->id, '_mnm_max_container_size', true ) );
+		$min_qty = intval( get_post_meta( $product->id, '_mnm_container_size', true ) );
+		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
+		$max_qty = $max_qty !== false ? intval( $max_qty ) : $min_qty;
+
 		$attributes['min_container_size'] = $min_qty;
 		$attributes['max_container_size'] = $max_qty;
 		return $attributes;
