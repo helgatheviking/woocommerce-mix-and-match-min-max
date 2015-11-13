@@ -280,33 +280,37 @@ class WC_MNM_Min_Max_Quantities {
 	/**
 	 * Validate container against our minimum quantity requirement
 	 *
-	 * @param string $error_message
+	 * @param bool $passed
+	 * @param obj $mnm_stock
 	 * @param obj $product
-	 * @param int $total_items_in_container - the number of items selected so far
 	 * @return void
 	 */
 	function validate_container( $passed, $mnm_stock, $product ){
 		$total_items_in_container = $mnm_stock->get_total_quantity();
 
-		$limit = intval( get_post_meta( $product->id, '_mnm_container_size', true ) );
+		$min_qty = intval( get_post_meta( $product->id, '_mnm_container_size', true ) );
 
-		$min_qty = intval( get_post_meta( $product->id, '_mnm_min_container_size', true ) );
-		$min_qty = $min_qty > 0 ? $min_qty : 1;
+		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
 
-		$max_qty = intval( get_post_meta( $product->id, '_mnm_max_container_size', true ) );
+		// if a max quantity exists and is not equal to the min quantity we have a non-fixed container size
+		if( $max_qty && $min_qty != intval( $max_qty ) ){
+			$min_qty = $min_qty > 0 ? $min_qty : 1;
+			$max_qty = intval( $max_qty );
 
-		// validate that an unlimited container is in min/max range & build a specific error message
-		if( $limit === 0 && $max_qty > 0 && $min_qty > 0 && ( $total_items_in_container > $max_qty || $total_items_in_container < $min_qty ) ){
-			$message = $total_items_in_container > $max_qty ? __( 'You have selected too many items.', 'wc-mnm-min-max' ) : __( 'You have not selected enough items.', 'wc-mnm-min-max' );
-			$message .= '  ' . 	sprintf( __( 'Please choose between %d and %d items for &quot;%s&quot;', 'wc-mnm-min-max' ), $min_qty, $max_qty, $product->get_title() );
-			wc_add_notice( $message, 'error' );
-			return false;
-		} 
-		// validate that an unlimited container has minimum number of items
-		else if( $limit === 0 && $min_qty > 0 && $total_items_in_container < $min_qty ){
-			wc_add_notice( sprintf( __( 'You have not selected enough items. Please choose at least %d items for &quot;%s&quot;', 'wc-mnm-min-max' ), $min_qty, $product->get_title() ), 'error' );
-			return false;
-		} 
+			// validate that an unlimited container is in min/max range & build a specific error message
+			if( $max_qty > 0 && $min_qty > 0 && ( $total_items_in_container > $max_qty || $total_items_in_container < $min_qty ) ){
+				$message = $total_items_in_container > $max_qty ? __( 'You have selected too many items.', 'wc-mnm-min-max' ) : __( 'You have selected too few items.', 'wc-mnm-min-max' );
+				$message .= '  ' . 	sprintf( __( 'Please choose between %d and %d items for &quot;%s&quot;', 'wc-mnm-min-max' ), $min_qty, $max_qty, $product->get_title() );
+				wc_add_notice( $message, 'error' );
+				$passed = false;
+			} 
+			// validate that an unlimited container has minimum number of items
+			else if( $min_qty > 0 && $total_items_in_container < $min_qty ){
+				wc_add_notice( sprintf( __( 'You have selected too few items. Please choose at least %d items for &quot;%s&quot;', 'wc-mnm-min-max' ), $min_qty, $product->get_title() ), 'error' );
+				$passed = false;
+			} 
+
+		}
 
 		return $passed;
 	}
