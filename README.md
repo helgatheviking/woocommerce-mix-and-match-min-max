@@ -1,6 +1,6 @@
 # WooCommerce Mix and Match Min/Max
 
-Extend the WooCommerce Mix and Match Products plugin to allow for minimum and maximum container sizes
+Extend the [WooCommerce Mix and Match Products](http://www.woothemes.com/products/woocommerce-mix-and-match-products) plugin to allow for minimum and maximum container sizes
 
 ## Usage
 
