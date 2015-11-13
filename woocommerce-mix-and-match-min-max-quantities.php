@@ -332,6 +332,7 @@ class WC_MNM_Min_Max_Quantities {
 
 		$params = array(
 			'i18n_min_max_qty_error'               => __( '%vPlease choose between %min and %max items to continue&hellip;', 'wc-mnm-min-max' ),
+			'i18n_min_qty_error_singular'          => __( '%vPlease choose at least %min item to continue&hellip;', 'wc-mnm-min-max' ),
 			'i18n_min_qty_error'               => __( '%vPlease choose at least %min items to continue&hellip;', 'wc-mnm-min-max' )
 		);
 
