@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Mix and Match: Min/Max Quantities
  * Plugin URI: http://www.woothemes.com/products/woocommerce-mix-and-match-products/
  * Description: Set minimum/maximum quantities for unlimited mix and match containers
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Kathy Darling
  * Author URI: http://kathyisawesome.com/
  * Developer: Kathy Darling, Manos Psychogyiopoulos
@@ -33,7 +33,7 @@ class WC_MNM_Min_Max_Quantities {
 	/**
 	 * variables
 	 */
-	public $version = '1.0.0';
+	public $version = '1.0.1';
 	public $required_woo = '2.3';
 
 	/**
