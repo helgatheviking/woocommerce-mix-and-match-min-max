@@ -1,10 +1,5 @@
 ;( function ( $, window, document, undefined ) {
 
-	$( 'body' ).on( 'wc-mnm-initialized', '.mnm_form', function( e, form ){
-        
-    } );
-
-
     $( 'body' ).on( 'wc-mnm-validation', '.mnm_form', function( e, form, total_qty ){
 
     	var min_container_size    = form.$mnm_cart.data( 'min_container_size' );
@@ -14,7 +9,7 @@
 		min_container_size = min_container_size > 0 ? min_container_size : 1;
 		
 		// not a static-sized container
-		if( min_container_size != max_container_size ){ console.log('bacon');
+		if( min_container_size != max_container_size ){
 
 			var error_message = '';
 
