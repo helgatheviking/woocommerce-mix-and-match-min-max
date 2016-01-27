@@ -56,7 +56,7 @@ class WC_MNM_Min_Max_Quantities {
 	 * Cloning is forbidden.
 	 */
 	public function __clone() {
-		_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'wc-mnm-min-max' ) );
+		_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'woocommerce-mix-and-match-min-max-quantities' ) );
 	}
 
 
@@ -64,7 +64,7 @@ class WC_MNM_Min_Max_Quantities {
 	 * Unserializing instances of this class is forbidden.
 	 */
 	public function __wakeup() {
-		_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'wc-mnm-min-max' ) );
+		_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'woocommerce-mix-and-match-min-max-quantities' ) );
 	}
 
 
@@ -124,7 +124,7 @@ class WC_MNM_Min_Max_Quantities {
 	 * @return void
 	 */
 	public function load_plugin_textdomain() {
-		load_plugin_textdomain( 'wc-mnm-min-max' , false , dirname( plugin_basename( __FILE__ ) ) .  '/languages/' );
+		load_plugin_textdomain( 'woocommerce-mix-and-match-min-max' , false , dirname( plugin_basename( __FILE__ ) ) .  '/languages/' );
 	}
 
 	/*-----------------------------------------------------------------------------------*/
@@ -157,8 +157,8 @@ class WC_MNM_Min_Max_Quantities {
 		woocommerce_wp_text_input( array(
 			'id' => 'mnm_container_size',
 			'value' => $min_qty,
-			'label' => __( 'Minimum Container Size', 'wc-mnm-min-max' ),
-			'description' => __( 'Minimum quantity for Mix and Match containers', 'wc-mnm-min-max' ),
+			'label' => __( 'Minimum Container Size', 'woocommerce-mix-and-match-min-max-quantities' ),
+			'description' => __( 'Minimum quantity for Mix and Match containers', 'woocommerce-mix-and-match-min-max-quantities' ),
 			'type' => 'number',
 			'min' => 1,
 			'desc_tip' => true ) )
@@ -167,8 +167,8 @@ class WC_MNM_Min_Max_Quantities {
 		woocommerce_wp_text_input( array(
 			'id' => 'mnm_max_container_size',
 			'value' => $max_qty,
-			'label' => __( 'Maximum Container Size', 'wc-mnm-min-max' ),
-			'description' => __( 'Maximum quantity for Mix and Match containers. Use 0 to not enforce an upper size limit.', 'wc-mnm-min-max' ),
+			'label' => __( 'Maximum Container Size', 'woocommerce-mix-and-match-min-max-quantities' ),
+			'description' => __( 'Maximum quantity for Mix and Match containers. Use 0 to not enforce an upper size limit.', 'woocommerce-mix-and-match-min-max-quantities' ),
 			'type' => 'number',
 			'desc_tip' => true )
 		);
@@ -190,7 +190,7 @@ class WC_MNM_Min_Max_Quantities {
 
 		if ( $max_qty > 0 && $min_qty > $max_qty ) {
 			$max_qty = $min_qty;
-			WC_Admin_Meta_Boxes::add_error( __( 'The maximum Mix & Match container size cannot be smaller than the minimum container size.', 'wc-mnm-min-max' ) );
+			WC_Admin_Meta_Boxes::add_error( __( 'The maximum Mix & Match container size cannot be smaller than the minimum container size.', 'woocommerce-mix-and-match-min-max-quantities' ) );
 		}
 
 		update_post_meta( $post_id, '_mnm_max_container_size', $max_qty );
@@ -260,9 +260,9 @@ class WC_MNM_Min_Max_Quantities {
 			if ( $max_qty > 0 ) {
 				// if not set, min_container_size is always 1, because the container can't be empty
 				$min_qty = $min_qty > 0 ? $min_qty : 1;
-				$message = sprintf( __( 'Please choose between %d and %d items to continue...', 'wc-mnm-min-max' ), $min_qty, $max_qty );
+				$message = sprintf( __( 'Please choose between %d and %d items to continue...', 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty, $max_qty );
 			} else if ( $min_qty > 0 ) {
-				$message = sprintf( _n( 'Please choose at least %d item to continue...', 'Please choose at least %d items to continue...', $min_qty, 'wc-mnm-min-max' ), $min_qty );
+				$message = sprintf( _n( 'Please choose at least %d item to continue...', 'Please choose at least %d items to continue...', $min_qty, 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty );
 			}
 
 		}
@@ -297,14 +297,14 @@ class WC_MNM_Min_Max_Quantities {
 
 			// validate that an unlimited container is in min/max range & build a specific error message
 			if ( $max_qty > 0 && $min_qty > 0 && ( $total_items_in_container > $max_qty || $total_items_in_container < $min_qty ) ) {
-				$message = $total_items_in_container > $max_qty ? __( 'You have selected too many items.', 'wc-mnm-min-max' ) : __( 'You have selected too few items.', 'wc-mnm-min-max' );
-				$message .= '  ' . 	sprintf( __( 'Please choose between %d and %d items for &quot;%s&quot;.', 'wc-mnm-min-max' ), $min_qty, $max_qty, $product->get_title() );
+				$message = $total_items_in_container > $max_qty ? __( 'You have selected too many items.', 'woocommerce-mix-and-match-min-max-quantities' ) : __( 'You have selected too few items.', 'woocommerce-mix-and-match-min-max-quantities' );
+				$message .= '  ' . 	sprintf( __( 'Please choose between %d and %d items for &quot;%s&quot;.', 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty, $max_qty, $product->get_title() );
 				wc_add_notice( $message, 'error' );
 				$passed = false;
 			}
 			// validate that an unlimited container has minimum number of items
 			else if ( $min_qty > 0 && $total_items_in_container < $min_qty ) {
-				wc_add_notice( sprintf( __( 'Please choose at least %d items for &quot;%s&quot;.', 'wc-mnm-min-max' ), $min_qty, $product->get_title() ), 'error' );
+				wc_add_notice( sprintf( __( 'Please choose at least %d items for &quot;%s&quot;.', 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty, $product->get_title() ), 'error' );
 				$passed = false;
 			}
 		}
@@ -327,7 +327,7 @@ class WC_MNM_Min_Max_Quantities {
 			$min_qty = $min_qty > 0 ? $min_qty : 1;
 			$max_qty = intval( $max_qty );
 
-			$container_size_meta_value = sprintf( __( 'Min: %1$s, Max: %2$s', 'wc-mnm-min-max' ), $min_qty ,( $max_qty === 0 ? __( 'Unlimited', 'woocommerce-mix-and-match-products' ) : $max_qty ) );
+			$container_size_meta_value = sprintf( __( 'Min: %1$s, Max: %2$s', 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty ,( $max_qty === 0 ? __( 'Unlimited', 'woocommerce-mix-and-match-products', 'woocommerce-mix-and-match-min-max-quantities' ) : $max_qty ) );
 		}
 
 		return $container_size_meta_value;
@@ -349,9 +349,9 @@ class WC_MNM_Min_Max_Quantities {
 		wp_register_script( 'wc-add-to-cart-mnm-min-max', plugins_url( 'js/add-to-cart-mnm-min-max' . $suffix . '.js', __FILE__ ), array( 'wc-add-to-cart-mnm' ), WC_MNM_Min_Max_Quantities()->version, true );
 
 		$params = array(
-			'i18n_min_max_qty_error'      => __( '%vPlease choose between %min and %max items to continue&hellip;', 'wc-mnm-min-max' ),
-			'i18n_min_qty_error_singular' => __( '%vPlease choose at least %min item to continue&hellip;', 'wc-mnm-min-max' ),
-			'i18n_min_qty_error'          => __( '%vPlease choose at least %min items to continue&hellip;', 'wc-mnm-min-max' )
+			'i18n_min_max_qty_error'      => __( '%vPlease choose between %min and %max items to continue&hellip;', 'woocommerce-mix-and-match-min-max-quantities' ),
+			'i18n_min_qty_error_singular' => __( '%vPlease choose at least %min item to continue&hellip;', 'woocommerce-mix-and-match-min-max-quantities' ),
+			'i18n_min_qty_error'          => __( '%vPlease choose at least %min items to continue&hellip;', 'woocommerce-mix-and-match-min-max-quantities' )
 		);
 
 		wp_localize_script( 'wc-add-to-cart-mnm-min-max', 'wc_mnm_min_max_params', $params );
