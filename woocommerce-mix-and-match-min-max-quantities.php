@@ -395,4 +395,4 @@ function WC_MNM_Min_Max_Quantities() {
 }
 
 // Launch the whole plugin
-add_action( 'woocommerce_loaded', 'WC_MNM_Min_Max_Quantities', 20 );
+add_action( 'woocommerce_mnm_loaded', 'WC_MNM_Min_Max_Quantities' );
