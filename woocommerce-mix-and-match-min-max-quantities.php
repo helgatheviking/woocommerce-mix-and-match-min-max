@@ -211,12 +211,8 @@ class WC_MNM_Min_Max_Quantities {
 	 */
 	public static function data_attributes( $attributes, $product ) {
 
-		$min_qty = intval( get_post_meta( $product->id, '_mnm_container_size', true ) );
-		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
-		$max_qty = $max_qty !== false ? intval( $max_qty ) : $min_qty;
-
-		$attributes['min_container_size'] = $min_qty;
-		$attributes['max_container_size'] = $max_qty;
+		$attributes['min_container_size'] = $product->get_container_size();
+		$attributes['max_container_size'] = self::get_max_container_size( $product );
 
 		return $attributes;
 	}
@@ -230,12 +226,22 @@ class WC_MNM_Min_Max_Quantities {
 	 * @return inte
 	 */
 	public static function max_container_size( $size, $product ) {
+		// if the array key exists send the intval, otherwise return unchanged
+		return in_array( '_mnm_max_container_size', get_post_custom_keys( $product->id ) ) ? intval( get_post_meta( $product->id, '_mnm_max_container_size', true ) ) : $size;
 
-		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
-		if ( $max_qty !== false ) {
-			$size = intval( $max_qty );
-		}
-		return $size;
+	}
+
+
+	/**
+	 * Get the maximum container size.
+	 *
+	 * @param int $size
+	 * @param obj $product
+	 * @return inte
+	 */
+	public static function get_max_container_size( $product ) {
+		// if the array key exists send the intval, otherwise return min container size
+		return in_array( '_mnm_max_container_size', get_post_custom_keys( $product->id ) ) ? intval( get_post_meta( $product->id, '_mnm_max_container_size', true ) ) : intval( get_post_meta( $product->id, '_mnm_container_size', true ) );
 	}
 
 
@@ -248,24 +254,21 @@ class WC_MNM_Min_Max_Quantities {
 	 */
 	public static function quantity_message( $message, $product ) {
 
-		$min_qty = get_post_meta( $product->id, '_mnm_container_size', true );
-		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
+		$min_qty = $product->get_container_size();
+		$max_qty = self::get_max_container_size( $product );
 
 		// if a max quantity exists and is not equal to the min quantity we have a non-fixed container size
-		if ( $max_qty !== false && intval( $min_qty ) != intval( $max_qty ) ) {
-
-			$min_qty = intval( $min_qty );
-			$max_qty = intval( $max_qty );
+		if ( $min_qty != $max_qty ) {
 
 			if ( $max_qty > 0 ) {
-				// if not set, min_container_size is always 1, because the container can't be empty
+				// min_container_size is always at least 1, because the container can't be empty
 				$min_qty = $min_qty > 0 ? $min_qty : 1;
 				$message = sprintf( __( 'Please choose between %d and %d items to continue...', 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty, $max_qty );
 			} else if ( $min_qty > 0 ) {
 				$message = sprintf( _n( 'Please choose at least %d item to continue...', 'Please choose at least %d items to continue...', $min_qty, 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty );
 			}
 
-		}
+		} 
 
 		return $message;
 	}
@@ -286,18 +289,17 @@ class WC_MNM_Min_Max_Quantities {
 
 		$total_items_in_container = $mnm_stock->get_total_quantity();
 
-		$min_qty = get_post_meta( $product->id, '_mnm_container_size', true );
-
-		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
+		$min_qty = $product->get_container_size();
+		$max_qty = self::get_max_container_size( $product );
 
 		// if a max quantity exists and is not equal to the min quantity we have a non-fixed container size
-		if ( $max_qty !== false && $min_qty != $max_qty ) {
+		if ( $min_qty != $max_qty ) {
 
 			// reset the error message
 			$error_message = false;
 
-			$min_qty = intval( $min_qty ) > 0 ? intval( $min_qty ) : 1;
-			$max_qty = intval( $max_qty );
+			// min_container_size is always at least 1, because the container can't be empty
+			$min_qty = $min_qty > 0 ? $min_qty : 1;
 
 			// validate that a container is in min/max range & build a specific error message
 			if ( $max_qty > 0 && $min_qty > 0 && ( $total_items_in_container > $max_qty || $total_items_in_container < $min_qty ) ) {
@@ -306,7 +308,7 @@ class WC_MNM_Min_Max_Quantities {
 			}
 			// validate that an unlimited container has minimum number of items
 			else if ( $min_qty > 0 && $total_items_in_container < $min_qty ) {
-				$error_message = sprintf( __( 'Please choose at least %d items for &quot;%s&quot;.', 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty, $product->get_title() );
+				$error_message = sprintf( _n( 'Please choose at least %d item for &quot;%s&quot;.', 'Please choose at least %d items for &quot;%s&quot;.', $min_qty, 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty, $product->get_title() );
 			} 
 		} 
 
@@ -320,7 +322,7 @@ class WC_MNM_Min_Max_Quantities {
 	public static function container_size_order_item_meta( $container_size_meta_value, $order_item_id, $cart_item_values, $cart_item_key ) {
 
 		$product = $cart_item_values[ 'data' ];
-		$min_qty = intval( get_post_meta( $product->id, '_mnm_container_size', true ) );
+		$min_qty = $product->get_container_size();
 		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
 
 		// if a max quantity exists and is not equal to the min quantity we have a non-fixed container size
