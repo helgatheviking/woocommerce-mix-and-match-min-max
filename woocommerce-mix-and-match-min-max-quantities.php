@@ -96,7 +96,7 @@ class WC_MNM_Min_Max_Quantities {
 		add_filter( 'woocommerce_mnm_container_quantity_message', array( __CLASS__, 'quantity_message' ), 10, 2 );
 
 		// validate the container
-		add_filter( 'woocommerce_mnm_add_to_cart_validation', array( __CLASS__, 'validate_container' ), 10, 3 );
+		add_filter( 'woocommerce_mnm_container_quantity_error_message', array( __CLASS__, 'validate_container' ), 10, 3 );
 
 		// Modify "Container Size" order item meta
 		add_action( 'woocommerce_mnm_order_item_container_size_meta_value', array( __CLASS__, 'container_size_order_item_meta' ), 10, 4 );
@@ -282,34 +282,35 @@ class WC_MNM_Min_Max_Quantities {
 	 * @param obj $product
 	 * @return void
 	 */
-	public static function validate_container( $passed, $mnm_stock, $product ) {
+	public static function validate_container( $error_message, $mnm_stock, $product ) {
 
 		$total_items_in_container = $mnm_stock->get_total_quantity();
 
-		$min_qty = intval( get_post_meta( $product->id, '_mnm_container_size', true ) );
+		$min_qty = get_post_meta( $product->id, '_mnm_container_size', true );
 
 		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
 
 		// if a max quantity exists and is not equal to the min quantity we have a non-fixed container size
-		if ( false !== $max_qty && $min_qty != intval( $max_qty ) ) {
-			$min_qty = $min_qty > 0 ? $min_qty : 1;
+		if ( $max_qty !== false && $min_qty != $max_qty ) {
+
+			// reset the error message
+			$error_message = false;
+
+			$min_qty = intval( $min_qty ) > 0 ? intval( $min_qty ) : 1;
 			$max_qty = intval( $max_qty );
 
-			// validate that an unlimited container is in min/max range & build a specific error message
+			// validate that a container is in min/max range & build a specific error message
 			if ( $max_qty > 0 && $min_qty > 0 && ( $total_items_in_container > $max_qty || $total_items_in_container < $min_qty ) ) {
-				$message = $total_items_in_container > $max_qty ? __( 'You have selected too many items.', 'woocommerce-mix-and-match-min-max-quantities' ) : __( 'You have selected too few items.', 'woocommerce-mix-and-match-min-max-quantities' );
-				$message .= '  ' . 	sprintf( __( 'Please choose between %d and %d items for &quot;%s&quot;.', 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty, $max_qty, $product->get_title() );
-				wc_add_notice( $message, 'error' );
-				$passed = false;
+				$error_message = $total_items_in_container > $max_qty ? __( 'You have selected too many items.', 'woocommerce-mix-and-match-min-max-quantities' ) : __( 'You have selected too few items.', 'woocommerce-mix-and-match-min-max-quantities' );
+				$error_message .= '  ' . 	sprintf( __( 'Please choose between %d and %d items for &quot;%s&quot;.', 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty, $max_qty, $product->get_title() );
 			}
 			// validate that an unlimited container has minimum number of items
 			else if ( $min_qty > 0 && $total_items_in_container < $min_qty ) {
-				wc_add_notice( sprintf( __( 'Please choose at least %d items for &quot;%s&quot;.', 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty, $product->get_title() ), 'error' );
-				$passed = false;
-			}
-		}
+				$error_message = sprintf( __( 'Please choose at least %d items for &quot;%s&quot;.', 'woocommerce-mix-and-match-min-max-quantities' ), $min_qty, $product->get_title() );
+			} 
+		} 
 
-		return $passed;
+		return $error_message;
 	}
 
 	/*-----------------------------------------------------------------------------------*/
