@@ -86,6 +86,9 @@ class WC_MNM_Min_Max_Quantities {
 		// save the new field
 		add_action( 'woocommerce_process_product_meta_mix-and-match', array( __CLASS__, 'process_meta' ), 20 );
 
+		// remove the default container size on front end
+		add_filter( 'woocommerce_mnm_container_size', array( __CLASS__, 'remove_container_size' ), 10, 2 );
+
 		// add the attribute to front end display
 		add_filter( 'woocommerce_mix_and_match_data_attributes', array( __CLASS__, 'data_attributes' ), 10, 2 );
 
@@ -201,6 +204,25 @@ class WC_MNM_Min_Max_Quantities {
 	/*-----------------------------------------------------------------------------------*/
 	/* Front End Display */
 	/*-----------------------------------------------------------------------------------*/
+
+	/**
+	 * Remove the default container size if min != max
+	 * disables default plugin 
+	 *
+	 * @param int $size
+	 * @param obj $product
+	 * @return int
+	 */
+	public static function remove_container_size( $size, $product ) { error_log('filtering container size from plugin');
+		$min_qty = intval( get_post_meta( $product->id, '_mnm_container_size', true ) );
+		$max_qty = get_post_meta( $product->id, '_mnm_max_container_size', true );
+
+		if( $min_qty != $max_qty ){
+			$size = 0;
+		}
+
+		return $size;
+	}
 
 	/**
 	 * Add the min/max attribute
