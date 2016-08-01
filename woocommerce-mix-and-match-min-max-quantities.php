@@ -211,6 +211,10 @@ class WC_MNM_Min_Max_Quantities {
 	 */
 	public static function data_attributes( $attributes, $product ) {
 
+		if( isset( $attributes['container_size'] ) ){
+			unset( $attributes['container_size'] );
+		}
+
 		$attributes['min_container_size'] = $product->get_container_size();
 		$attributes['max_container_size'] = self::get_max_container_size( $product );
 
