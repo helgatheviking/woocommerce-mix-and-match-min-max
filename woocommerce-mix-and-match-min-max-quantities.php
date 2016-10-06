@@ -372,7 +372,7 @@ class WC_MNM_Min_Max_Quantities {
 	public static function quickview_support() {
 
 		if ( ! is_product() ) {
-			$this->frontend_scripts();
+			self::frontend_scripts();
 			wp_enqueue_script( 'wc-add-to-cart-mnm-min-max' );
 		}
 	}
