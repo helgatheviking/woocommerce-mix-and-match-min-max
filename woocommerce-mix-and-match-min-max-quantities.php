@@ -8,6 +8,8 @@
  * Author URI: http://kathyisawesome.com/
  * Developer: Kathy Darling, Manos Psychogyiopoulos
  * Developer URI: http://kathyisawesome.com/
+ * WC requires at least: 2.5.0    
+ * WC tested up to: 2.6.14   
  * Text Domain: wc-mnm-min-max
  * Domain Path: /languages
  *
@@ -34,7 +36,7 @@ class WC_MNM_Min_Max_Quantities {
 	 * variables
 	 */
 	public $version = '1.0.3';
-	public $required_woo = '2.3';
+	public $required_woo = '2.5.0';
 
 	/**
 	 * Main WC_MNM_Min_Max_Quantities instance.
